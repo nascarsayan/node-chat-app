@@ -12,17 +12,28 @@ var io = socketIO(server);
 
 app.use(express.static(publicPath));
 
-io.on('connection', (socket) => {
+io.on('connection', (socket, err) => {
+  if (err) {console.log(err);}
   console.log('New user connected');
 
   socket.emit('newMessage', {
-    from: 'nascaranima',
-    text: 'Hey!',
-    createdOn: 123
+    from: 'Admin',
+    message: 'Welcome to the chat app'
   });
 
-  socket.on('createMessage', (email, err) => {
-    console.log('Created message', email);
+  socket.broadcast.emit('newMessage', {
+    from: 'Admin',
+    message: 'New user joined',
+    createdOn: new Date().getTime()
+  });
+
+  socket.on('createMessage', (message, err) => {
+    console.log('Created message', message);
+    io.emit('newMessage', {
+      from: message.from,
+      text: message.text,
+      createdOn: new Date().getTime()
+    });
   });
 
   socket.on('disconnect', (err) => {
@@ -33,4 +44,5 @@ io.on('connection', (socket) => {
 
 server.listen(port, (err) => {
   console.log(`Server started on port ${port}`);
+  if (err) {console.log(err);}
 });
